@@ -1,0 +1,55 @@
+<!DOCTYPE html>
+<html lang="en">
+
+<head>
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0">
+  <link rel="stylesheet" href="https://maxcdn.bootstrapcdn.com/bootstrap/4.0.0/css/bootstrap.min.css">
+  <style>
+    .middle-panel {
+      min-height: 50vh;
+      max-height: 70vh;
+    }
+  </style>
+  <title>Bootstrap Layout Example</title>
+</head>
+
+<body>
+  <div class="container-fluid">
+    <div class="row">
+      <div class="col-md-12 bg-primary text-white">
+        <h1>Top Panel</h1>
+        <p>Dummy text goes here.</p>
+      </div>
+    </div>
+    <div class="row">
+      <div class="col-md-3 bg-secondary">
+        <h2>Left Panel</h2>
+        <p>Dummy text goes here.</p>
+      </div>
+      <div class="col-md-6 bg-info middle-panel">
+        <h2>Middle Panel</h2>
+        <p>Dummy text goes here.</p>
+      </div>
+      <div class="col-md-3 bg-secondary">
+        <h2>Right Panel</h2>
+        <p>Dummy text goes here.</p>
+      </div>
+    </div>
+    <div class="row">
+      <div class="col-md-6 bg-warning">
+        <h2>Bottom Panel 1</h2>
+        <p>Dummy text goes here.</p>
+      </div>
+      <div class="col-md-6 bg-danger">
+        <h2>Bottom Panel 2</h2>
+        <p>Dummy text goes here.</p>
+      </div>
+    </div>
+  </div>
+
+  <script src="https://code.jquery.com/jquery-3.2.1.slim.min.js"></script>
+  <script src="https://maxcdn.bootstrapcdn.com/bootstrap/4.0.0/js/bootstrap.min.js"></script>
+</body>
+
+</html>
