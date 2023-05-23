@@ -262,52 +262,7 @@ textarea {
 }
 
 #map {
-  /*width: 50%;*/
   height: 60vh;
-}
-
-/* overlay.css styles */
-.overlay {
-  position: absolute;
-  /*top: 0;*/
-  /*left: 0;*/
-  width: 100%;
-  height: 100%;
-  background-color: rgba(0, 0, 0, 0.2); /* Semi-transparent background color */
-  pointer-events: auto; /* Allow click events on the overlay */
-  cursor: pointer;
-}
-/*.overlay {*/
-/*  position: absolute;*/
-/*  top: 0;*/
-/*  left: 0;*/
-/*  width: 100%;*/
-/*  height: 100%;*/
-/*  z-index: 100;*/
-/*}*/
-
-/* mark.css styles */
-.mark {
-  position: absolute;
-  width: 10px;
-  height: 10px;
-  background-color: red;
-  border-radius: 50%;
-  transform: translate(-50%, -50%);
-}
-
-.rectangle {
-  position: absolute;
-  border: 2px solid red;
-  pointer-events: none;
-  box-sizing: border-box;
-}
-
-.grid {
-  position: absolute;
-  border: 1px dashed gray;
-  pointer-events: none;
-  box-sizing: border-box;
 }
 
 .middle-panel {
@@ -318,14 +273,6 @@ textarea {
   align-items: center;
 }
 
-/*.container {*/
-/*  display: flex;*/
-/*}*/
-
-.image-container {
+.map-container {
 
 }
-
-/*.text-box {*/
-/*  margin-left: 20px; !* Adjust the margin as needed *!*/
-/*}*/
