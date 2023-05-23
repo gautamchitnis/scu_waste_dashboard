@@ -14,26 +14,39 @@ window.addEventListener('DOMContentLoaded', async function () {
       updateMap(i);
     });
   }
-  const csvFile = 'data/data.csv'; // Replace 'data.csv' with the path to your CSV file
+  let dataArray = await getData();
+  // Extract the unique dates from the cleaned data
+  const uniqueDates = extractUniqueDates(dataArray);
 
-  // Call the loadCSV function to start loading and processing the CSV file
-  let dataArray = await loadCSV(csvFile);
-  dataArray = cleanCSV(dataArray);
-
-  // The dataArray is available here
-  // console.log(dataArray);
-  const filename = 'cleaned_data.csv';
-  dumpCSV(dataArray, filename);
-
-  // Perform analysis and visualization with the 'dataArray' as needed
-  // analyzeData(dataArray); // You need to implement the 'analyzeData' function
-
-  // Update the dashboard with the analysis results
-  // updateDashboard(dataArray); // You need to implement the 'updateDashboard' function
+  // Populate the list of dates in the HTML
+  populateDateList(uniqueDates);
+  await reset(dataArray);
 });
 
+async function getData() {
+  // Fetch dataArray from localStorage
+  const savedData = localStorage.getItem('data');
+  const fetchedDataArray = savedData ? JSON.parse(savedData) : null;
+
+  if (fetchedDataArray) {
+    return fetchedDataArray
+  } else {
+    const csvFile = 'data/data.csv'; // Replace 'data.csv' with the path to your CSV file
+    // Call the loadCSV function to start loading and processing the CSV file
+    let dataArray = await loadCSV(csvFile);
+    dataArray = cleanCSV(dataArray, 'in');
+
+    // The dataArray is available here
+    // console.log(dataArray);
+    // const filename = 'cleaned_data.csv';
+    // dumpCSV(dataArray, filename);
+    localStorage.setItem('data', JSON.stringify(dataArray));
+    return dataArray
+  }
+}
+
 // Function to update the map based on the clicked button
-function updateMap(buildingNumber) {
+async function updateMap(buildingNumber) {
   // Generate the image filename based on the building number
   const imageFilename = `${buildingNumber}.png`;
 
@@ -41,6 +54,44 @@ function updateMap(buildingNumber) {
   const mapImage = document.getElementById('map');
   mapImage.src = `img/${imageFilename}`;
   mapImage.alt = `Map for Building ${buildingNumber}`;
+
+  let selectedBuilding = getBuildingName(buildingNumber);
+
+  let dataArray = await getData();
+  updateDashboard(dataArray, null, selectedBuilding);
+}
+
+function getBuildingName(buildingNumber) {
+  let selectedBuilding = null;
+  switch (buildingNumber) {
+    case 1:
+      selectedBuilding = "Learning Commons"
+      break;
+    case 2:
+      selectedBuilding = "Benson Center"
+      break;
+    case 3:
+      selectedBuilding = "Swig"
+      break;
+    case 4:
+      selectedBuilding = "Facilities"
+      break;
+    case 5:
+      selectedBuilding = "Vari Hall and Lucas Hall"
+      break;
+    case 6:
+      selectedBuilding = "Malley"
+      break;
+    case 7:
+      selectedBuilding = "Graham"
+      break;
+    case 8:
+      selectedBuilding = "University Villas"
+      break;
+    default:
+      selectedBuilding = null
+  }
+  return selectedBuilding;
 }
 
 // Function to load and process the CSV file
@@ -66,9 +117,16 @@ function parseCSV(csvData) {
   return dataArray;
 }
 
-function cleanCSV(dataArray) {
+function cleanCSV(dataArray, splitString, includeHeader = false) {
   // Extract the header row from the original data
-  const headerRow = dataArray[0];
+  let headerRow = dataArray[0];
+
+  // Find the index of the 'Stream' column in the header row
+  const streamColumnIndex = headerRow.indexOf('Stream');
+
+  // Add the new column names after the 'Stream' column
+  headerRow.splice(streamColumnIndex + 1, 0, 'Acceptable Stream', 'Received Stream');
+  headerRow = headerRow.slice(0, -1);
 
   const cleanedData = dataArray.slice(1).map(row => {
     const cleanedRow = row.slice(0, -1).map(column => {
@@ -84,15 +142,47 @@ function cleanCSV(dataArray) {
     const volume = parseFloat(cleanedRow[4].replace(/[^0-9.-]+/g, ''));
     const weight = cleanedRow[5] !== undefined ? parseFloat(cleanedRow[5].replace(/[^0-9.-]+/g, '')) : '';
 
+    // Split the Stream column into Received Stream and Acceptable Stream
+    let receivedStream = '';
+    let acceptableStream = '';
+
+    const words = cleanedRow[2].trim().split(' ');
+
+    if (words.length === 1) {
+      receivedStream = cleanedRow[2].trim();
+      acceptableStream = cleanedRow[2].trim();
+    } else if (words.length === 3) {
+      if (words[1] === splitString) {
+        receivedStream = words[0].trim();
+        acceptableStream = words[2].trim();
+      }
+    } else if (words.length === 4) {
+      if (words[1] === splitString) {
+        receivedStream = words[0].trim();
+        acceptableStream = words.slice(2).join(' ').trim();
+      } else if (words[2] === splitString) {
+        receivedStream = words.slice(0, 2).join(' ').trim();
+        if (receivedStream == 'Food Waste') {
+          receivedStream = 'Compost';
+        }
+        acceptableStream = words[3].trim();
+      }
+    }
+
     // Return the cleaned row as an array
-    return [date, cleanedRow[1], cleanedRow[2], cleanedRow[3], volume, weight];
+    return [date, cleanedRow[1], cleanedRow[2], receivedStream, acceptableStream, cleanedRow[3], volume, weight];
   });
 
-  // Add the header row back to the cleaned data array
-  const cleanedDataWithHeader = [headerRow.slice(0, -1), ...cleanedData];
+  if (includeHeader) {
+    // Add the header row back to the cleaned data array
+    const cleanedDataWithHeader = [headerRow, ...cleanedData];
 
-  // Return the cleaned data array
-  return cleanedDataWithHeader;
+    // Return the cleaned data array
+    return cleanedDataWithHeader;
+  } else {
+    // Return the cleaned data array
+    return cleanedData;
+  }
 }
 
 // Helper function to format the date as MM/DD/YYYY
@@ -119,7 +209,7 @@ function dumpCSV(cleanedData, filename) {
   const csvContent = cleanedData.map(row => row.join(',')).join('\n');
 
   // Create a Blob object with CSV content
-  const blob = new Blob([csvContent], { type: 'text/csv;charset=utf-8;' });
+  const blob = new Blob([csvContent], {type: 'text/csv;charset=utf-8;'});
 
   // Create a temporary URL for the Blob
   const url = URL.createObjectURL(blob);
@@ -136,14 +226,210 @@ function dumpCSV(cleanedData, filename) {
   URL.revokeObjectURL(url);
 }
 
-// Function to analyze the CSV data
-function analyzeData(dataArray) {
-  // Implement the logic to analyze the CSV data
-  // Perform any calculations, aggregations, or data manipulations as needed
+function extractUniqueDates(dataArray) {
+  const uniqueDates = new Set();
+  dataArray.forEach(row => {
+    const date = row[0];
+    uniqueDates.add(date);
+  });
+
+  const sortedDates = Array.from(uniqueDates).sort((a, b) => new Date(a) - new Date(b));
+
+  return sortedDates;
+}
+
+function populateDateList(dates) {
+  const dateListContainer = document.getElementById('date_pane');
+
+  // Create a <ul> element
+  const dateList = document.createElement('ul');
+
+  // Add a class to the <ul> element
+  dateList.classList.add('date-list');
+
+  // Loop through the dates and create <li> elements
+  dates.forEach(date => {
+    const listItem = document.createElement('li');
+    listItem.textContent = date;
+
+    // Add a click event listener to each list item
+    listItem.addEventListener('click', async function () {
+      // Remove the 'selected' class from all list items
+      const listItems = document.querySelectorAll('.date-list li');
+      listItems.forEach(item => item.classList.remove('selected'));
+
+      // Add the 'selected' class to the clicked list item
+      this.classList.add('selected');
+
+      // Retrieve the selected date
+      const selectedDate = this.textContent;
+      // console.log('Selected Date:', selectedDate);
+
+      const mapElement = document.getElementById('map');
+      const source = mapElement.src;
+      let selectedBuilding = null;
+
+      if(source !== "img/scu_map.jpeg"){
+        const buildingNum = source.substring(source.lastIndexOf('/') + 1, source.lastIndexOf('.'));
+        selectedBuilding = getBuildingName(parseInt(buildingNum));
+      }
+
+      let dataArray = await getData();
+      // Call a function to update the dashboard based on the selected date
+      updateDashboard(dataArray, selectedDate, selectedBuilding);
+    });
+
+    dateList.appendChild(listItem);
+  });
+
+  // Append the <ul> element to the container
+  dateListContainer.appendChild(dateList);
+}
+
+function generateBarGraph(buildings, weights) {
+  const canvas = document.getElementById('barChart');
+
+  // Create the chart using Chart.js
+  new Chart(canvas, {
+    type: 'bar',
+    data: {
+      labels: buildings,
+      datasets: [
+        {
+          label: 'Weight of Trash Disposed',
+          data: weights,
+          backgroundColor: 'rgba(75, 192, 192, 0.8)', // Adjust the color as needed
+          borderWidth: 1,
+        },
+      ],
+    },
+    options: {
+      responsive: true,
+      maintainAspectRatio: true,
+      // indexAxis: 'y',
+      scales: {
+        y: {
+          beginAtZero: true,
+          title: {
+            display: true,
+            text: 'Weight (lbs)',
+          },
+        },
+        x: {
+          beginAtZero: true,
+        },
+      },
+    },
+  });
 }
 
 // Function to update the dashboard with analysis results
-function updateDashboard(dataArray) {
-  // Implement the logic to update the dashboard with the analysis results
-  // Update HTML elements, charts, or any other components with the analyzed data
+function updateDashboard(cleanedData, selectedDate, selectedBuilding) {
+
+  let aggregatedBuildingWeights = null;
+  let aggregatedStreamWeights = null;
+  let buildings = null;
+  let weights = null;
+  let streams = null;
+
+  let filteredData = cleanedData;
+
+  if (selectedDate && selectedBuilding) {
+    filteredData = cleanedData.filter(row => row[0] === selectedDate && row[1] === selectedBuilding);
+  } else if (selectedBuilding) {
+    // Filter the data based on the selected building
+    filteredData = cleanedData.filter(row => row[1] === selectedBuilding);
+  } else if (selectedDate) {
+    // Filter the data based on the selected date
+    filteredData = cleanedData.filter(row => row[0] === selectedDate);
+  }
+
+  // Generate the bar graph based on the aggregated building weights
+  aggregatedBuildingWeights = aggregateBuildingWeights(filteredData);
+  buildings = Object.keys(aggregatedBuildingWeights);
+  weights = Object.values(aggregatedBuildingWeights);
+
+  generateBarGraph(buildings, weights);
+
+  weights = buildings = streams = null;
+
+  // Generate the bar graph based on the aggregated stream weights
+  aggregatedStreamWeights = aggregateStreamWeights(filteredData);
+  streams = Object.keys(aggregatedStreamWeights);
+  weights = Object.values(aggregatedStreamWeights);
+
+  generatePieChart(streams, weights);
+
+  weights = buildings = streams = null;
+
+}
+
+function aggregateBuildingWeights(data) {
+  const aggregatedWeights = {};
+
+  data.forEach(row => {
+    const building = row[1];
+    const weight = row[7];
+
+    if (!aggregatedWeights[building]) {
+      aggregatedWeights[building] = 0;
+    }
+
+    aggregatedWeights[building] += weight;
+  });
+
+  return aggregatedWeights;
+}
+
+function aggregateStreamWeights(data) {
+  const aggregatedWeights = {};
+
+  data.forEach(row => {
+    const stream = row[2];
+    const weight = row[7];
+
+    if (!aggregatedWeights[stream]) {
+      aggregatedWeights[stream] = 0;
+    }
+
+    aggregatedWeights[stream] += weight;
+  });
+
+  return aggregatedWeights;
+}
+
+function generatePieChart(streams, weights) {
+  const canvas = document.getElementById('pieChart');
+  const colors = streams.map(() => generateRandomColor());
+
+  new Chart(canvas, {
+    type: 'doughnut',
+    data: {
+      labels: streams,
+      datasets: [{
+        label: 'Total Weight of Trash by Stream',
+        data: weights,
+        backgroundColor: colors,
+        borderWidth: 1,
+      }],
+    },
+    options: {
+      responsive: true,
+      maintainAspectRatio: true,
+    },
+  });
+}
+
+function generateRandomColor() {
+  const r = Math.floor(Math.random() * 256);
+  const g = Math.floor(Math.random() * 256);
+  const b = Math.floor(Math.random() * 256);
+  return `rgba(${r}, ${g}, ${b}, 0.8)`;
+}
+
+async function reset(dataArray) {
+  if(!dataArray) {
+    dataArray = await getData();
+  }
+  updateDashboard(dataArray);
 }

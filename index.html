@@ -27,50 +27,51 @@
     </div>
   </div>
   <div class="row">
-    <div class="col-md-2 bg-secondary">
+    <div class="col-md-3 bg-secondary" id="date_pane">
       <h2>Select Date</h2>
-      <p>Dummy text goes here.</p>
     </div>
-    <div class="col-md-8 bg-info middle-panel">
+    <div class="col-md-6 bg-info middle-panel">
       <div class="row">
         <div class="col">
-          <button id="building_1">Learning Commons</button>
-          <br>
-          <button id="building_2">Benson Center</button>
-          <br>
-          <button id="building_3">Swig</button>
-          <br>
-          <button id="building_4">Facilities</button>
+          <div class="d-flex flex-column align-items-center h-100 justify-content-around">
+            <button id="building_1">Learning Commons</button>
+            <button id="building_2">Benson Center</button>
+            <button id="building_3">Swig</button>
+            <button id="building_4">Facilities</button>
+          </div>
         </div>
         <div class="col">
           <div class="map-container">
             <img id="map" alt="Default SCU Map" src="img/scu_map.jpeg"/>
+            <div class="default-button-container">
+              <button id="default_button" onclick="reset()">Reset</button>
+            </div>
           </div>
         </div>
         <div class="col">
-          <button id="building_5">Vari Hall and Lucas Hall</button>
-          <br>
-          <button id="building_6">Malley</button>
-          <br>
-          <button id="building_7">Graham</button>
-          <br>
-          <button id="building_8">University Villas</button>
+          <div class="d-flex flex-column align-items-center h-100 justify-content-around">
+            <button id="building_5">Vari Hall and Lucas Hall</button>
+            <button id="building_6">Malley</button>
+            <button id="building_7">Graham</button>
+            <button id="building_8">University Villas</button>
+          </div>
         </div>
       </div>
     </div>
-    <div class="col-md-2 bg-secondary">
+
+    <div class="col-md-3 bg-secondary" id="info_pane">
       <h2>Building Info</h2>
       <p>Dummy text goes here.</p>
     </div>
   </div>
   <div class="row">
-    <div class="col-md-6 bg-warning">
+    <div class="col-md-6">
       <h2>Bottom Panel 1</h2>
-      <p>Dummy text goes here.</p>
+      <canvas id="barChart"></canvas>
     </div>
-    <div class="col-md-6 bg-danger">
+    <div class="col-md-6">
       <h2>Bottom Panel 2</h2>
-      <p>Dummy text goes here.</p>
+      <canvas id="pieChart"></canvas>
     </div>
   </div>
 </div>
@@ -81,6 +82,7 @@
 <script src="js/plugins.js"></script>
 <script src="js/main.js"></script>
 <script src="https://www.google-analytics.com/analytics.js" async></script>
+<script src="https://cdnjs.cloudflare.com/ajax/libs/Chart.js/2.9.4/Chart.js"></script>
 </body>
 
 </html>

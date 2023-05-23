@@ -276,3 +276,12 @@ textarea {
 .map-container {
 
 }
+
+.default-button-container {
+  display: flex;
+  justify-content: center;
+  align-items: center;
+  height: 100%;
+  padding: 2vh 0 2vh 0;
+}
+
