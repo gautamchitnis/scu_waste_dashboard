@@ -45,65 +45,12 @@ async function getData() {
   }
 }
 
-// Function to update the map based on the clicked button
-async function updateMap(buildingNumber) {
-  // Generate the image filename based on the building number
-  const imageFilename = `${buildingNumber}.png`;
-
-  // Set the image source
-  const mapImage = document.getElementById('map');
-  mapImage.src = `img/${imageFilename}`;
-  mapImage.alt = `Map for Building ${buildingNumber}`;
-
-  let selectedBuilding = getBuildingName(buildingNumber);
-
-  let dataArray = await getData();
-  const listItems = document.querySelectorAll('.date-list li');
-  listItems.forEach(item => item.classList.remove('selected'));
-  updateDashboard(dataArray, null, selectedBuilding);
-}
-
-function getBuildingName(buildingNumber) {
-  let selectedBuilding = null;
-  let buildingInfo = null;
-  switch (buildingNumber) {
-    case 1:
-      selectedBuilding = "Learning Commons";
-      buildingInfo = "";
-      break;
-    case 2:
-      selectedBuilding = "Benson Center"
-      break;
-    case 3:
-      selectedBuilding = "Swig"
-      break;
-    case 4:
-      selectedBuilding = "Facilities"
-      break;
-    case 5:
-      selectedBuilding = "Vari Hall and Lucas Hall"
-      break;
-    case 6:
-      selectedBuilding = "Malley"
-      break;
-    case 7:
-      selectedBuilding = "Graham"
-      break;
-    case 8:
-      selectedBuilding = "University Villas"
-      break;
-    default:
-      selectedBuilding = null
-  }
-  return selectedBuilding;
-}
-
 // Function to load and process the CSV file
 async function loadCSV(csvFile) {
   try {
     const response = await fetch(csvFile);
     const csvData = await response.text();
-    const dataArray = parseCSV(csvData); // You need to implement the 'parseCSV' function to parse the CSV data
+    const dataArray = parseCSV(csvData);
     return dataArray;
   } catch (error) {
     console.error('Error loading CSV:', error);
@@ -113,9 +60,6 @@ async function loadCSV(csvFile) {
 
 // Function to parse the CSV data into an array
 function parseCSV(csvData) {
-  // Implement the logic to parse the CSV data into an array
-  // You can use libraries like Papa Parse (https://www.papaparse.com/) for more advanced CSV parsing options
-  // Here's a basic example of parsing CSV with simple comma separation
   const lines = csvData.split('\n');
   const dataArray = lines.map(line => line.split(','));
   return dataArray;
@@ -267,7 +211,6 @@ function populateDateList(dates) {
 
       // Retrieve the selected date
       const selectedDate = this.textContent;
-      // console.log('Selected Date:', selectedDate);
 
       const mapElement = document.getElementById('map');
       const source = mapElement.src;
@@ -289,95 +232,57 @@ function populateDateList(dates) {
   dateListContainer.appendChild(dateList);
 }
 
-function generateBarGraph(buildings, weights) {
-  const canvas = document.getElementById('barChart');
-  const oldChart = Chart.getChart(canvas);
-  if (typeof oldChart !== 'undefined') {
-      oldChart.destroy();
-  }
+// Function to update the map based on the clicked button
+async function updateMap(buildingNumber) {
+  // Generate the image filename based on the building number
+  const imageFilename = `${buildingNumber}.png`;
 
-  // Create the chart using Chart.js
-  new Chart(canvas, {
-    type: 'bar',
-    data: {
-      labels: buildings,
-      datasets: [
-        {
-          label: 'Weight',
-          data: weights,
-          backgroundColor: 'rgba(213, 120, 0, 1)', // Adjust the color as needed
-          borderWidth: 1,
-        },
-      ],
-    },
-    options: {
-      responsive: true,
-      maintainAspectRatio: true,
-      // indexAxis: 'y',
-      scales: {
-        y: {
-          beginAtZero: true,
-          title: {
-            display: true,
-            text: 'Weight (lbs)',
-          },
-        },
-        x: {
-          beginAtZero: true,
-        },
-      },
-    },
-  });
+  // Set the image source
+  const mapImage = document.getElementById('map');
+  mapImage.src = `img/${imageFilename}`;
+  mapImage.alt = `Map for Building ${buildingNumber}`;
+
+  let selectedBuilding = getBuildingName(buildingNumber);
+
+  let dataArray = await getData();
+  const listItems = document.querySelectorAll('.date-list li');
+  listItems.forEach(item => item.classList.remove('selected'));
+  updateDashboard(dataArray, null, selectedBuilding);
 }
 
-// Function to update the dashboard with analysis results
-function updateDashboard(cleanedData, selectedDate, selectedBuilding) {
-
-  let aggregatedBuildingWeights = null;
-  let aggregatedStreamWeights = null;
-  let buildings = null;
-  let weights = null;
-  let streams = null;
-  let streamMatchesCount = null;
-  let counts = null;
-
-  let filteredData = cleanedData;
-
-  if (selectedDate && selectedBuilding) {
-    filteredData = cleanedData.filter(row => row[0] === selectedDate && row[1] === selectedBuilding);
-  } else if (selectedBuilding) {
-    // Filter the data based on the selected building
-    filteredData = cleanedData.filter(row => row[1] === selectedBuilding);
-  } else if (selectedDate) {
-    // Filter the data based on the selected date
-    filteredData = cleanedData.filter(row => row[0] === selectedDate);
+function getBuildingName(buildingNumber) {
+  let selectedBuilding = null;
+  let buildingInfo = null;
+  switch (buildingNumber) {
+    case 1:
+      selectedBuilding = "Learning Commons";
+      buildingInfo = "";
+      break;
+    case 2:
+      selectedBuilding = "Benson Center"
+      break;
+    case 3:
+      selectedBuilding = "Swig"
+      break;
+    case 4:
+      selectedBuilding = "Facilities"
+      break;
+    case 5:
+      selectedBuilding = "Vari Hall and Lucas Hall"
+      break;
+    case 6:
+      selectedBuilding = "Malley"
+      break;
+    case 7:
+      selectedBuilding = "Graham"
+      break;
+    case 8:
+      selectedBuilding = "University Villas"
+      break;
+    default:
+      selectedBuilding = null
   }
-
-  // Generate the bar graph based on the aggregated building weights
-  aggregatedBuildingWeights = aggregateBuildingWeights(filteredData);
-  buildings = Object.keys(aggregatedBuildingWeights);
-  weights = Object.values(aggregatedBuildingWeights);
-
-  generateBarGraph(buildings, weights);
-
-  weights = buildings = streams = streamMatchesCount = counts = null;
-
-  // Generate the bar graph based on the aggregated stream weights
-  aggregatedStreamWeights = aggregateStreamWeights(filteredData);
-  streams = Object.keys(aggregatedStreamWeights);
-  weights = Object.values(aggregatedStreamWeights);
-
-  generatePieChart(streams, weights);
-
-  weights = buildings = streams = streamMatchesCount = counts = null;
-
-  // Generate the bar graph based on the aggregated stream weights
-  streamMatchesCount = countStreamMatches(filteredData);
-  streams = Object.keys(streamMatchesCount);
-  counts = Object.values(streamMatchesCount);
-
-  generatePieChart_2(streams, counts);
-  weights = buildings = streams = streamMatchesCount = counts = null;
+  return selectedBuilding;
 }
 
 function aggregateBuildingWeights(data) {
@@ -432,17 +337,57 @@ function countStreamMatches(dataArray) {
   return { Correct: correctCount, Incorrect: incorrectCount };
 }
 
+function generateBarGraph(buildings, weights) {
+  const canvas = document.getElementById('barChart');
+  const oldChart = Chart.getChart(canvas);
+  if (typeof oldChart !== 'undefined') {
+      oldChart.destroy();
+  }
+
+  // Create the chart using Chart.js
+  new Chart(canvas, {
+    type: 'bar',
+    data: {
+      labels: buildings,
+      datasets: [
+        {
+          label: 'Weight',
+          data: weights,
+          backgroundColor: 'rgba(213, 120, 0, 1)',
+          borderWidth: 1,
+        },
+      ],
+    },
+    options: {
+      responsive: true,
+      maintainAspectRatio: true,
+      indexAxis: 'y',
+      scales: {
+        x: {
+          beginAtZero: true,
+          title: {
+            display: true,
+            text: 'Weight (lbs)',
+          },
+        },
+        y: {
+          beginAtZero: true,
+        },
+      },
+    },
+  });
+}
+
 function generatePieChart(streams, weights) {
   const canvas = document.getElementById('pieChart');
   const colors = streams.map((stream) => {
     if  (stream === 'Recycling') {
-      return 'rgb(70,122,224)';
+      return 'rgba(70, 122, 224, 1)';
     } else if (stream === 'Compost') {
       return 'rgba(62, 142, 65, 1)';
     } else {
       return 'rgba(84, 101, 117, 1)';
     }
-    // stream === 'Recycling' ? 'rgba(75, 192, 192, 0.8)' : 'rgba(255, 99, 132, 0.8)'
   });
   const oldChart = Chart.getChart(canvas);
   if (typeof oldChart !== 'undefined') {
@@ -470,8 +415,7 @@ function generatePieChart(streams, weights) {
 
 function generatePieChart_2(streams, counts) {
   const canvas = document.getElementById('pieChart2');
-  // const colors = streams.map(() => generateRandomColor());
-  const colors = streams.map((stream) => stream === 'Correct' ? 'rgb(51,192,57)' : 'rgba(179, 7, 56, 1)');
+  const colors = streams.map((stream) => stream === 'Correct' ? 'rgba(51, 192, 57, 1)' : 'rgba(179, 7, 56, 1)');
   const oldChart = Chart.getChart(canvas);
   if (typeof oldChart !== 'undefined') {
       oldChart.destroy();
@@ -500,6 +444,58 @@ function generateRandomColor() {
   const g = Math.floor(Math.random() * 256);
   const b = Math.floor(Math.random() * 256);
   return `rgba(${r}, ${g}, ${b}, 0.8)`;
+}
+
+// Function to update the dashboard with analysis results
+function updateDashboard(cleanedData, selectedDate, selectedBuilding) {
+
+  let aggregatedBuildingWeights = null;
+  let aggregatedStreamWeights = null;
+  let buildings = null;
+  let weights = null;
+  let streams = null;
+  let streamMatchesCount = null;
+  let counts = null;
+
+  let filteredData = cleanedData;
+
+  if (selectedDate && selectedBuilding) {
+    // Filter the data based on the selected date and building
+    filteredData = cleanedData.filter(row => row[0] === selectedDate && row[1] === selectedBuilding);
+  } else if (selectedBuilding) {
+    // Filter the data based on the selected building
+    filteredData = cleanedData.filter(row => row[1] === selectedBuilding);
+  } else if (selectedDate) {
+    // Filter the data based on the selected date
+    filteredData = cleanedData.filter(row => row[0] === selectedDate);
+  }
+
+  // Generate the bar graph based on the aggregated building weights
+  aggregatedBuildingWeights = aggregateBuildingWeights(filteredData);
+  buildings = Object.keys(aggregatedBuildingWeights);
+  weights = Object.values(aggregatedBuildingWeights);
+
+  generateBarGraph(buildings, weights);
+
+  weights = buildings = streams = streamMatchesCount = counts = null;
+
+  // Generate the pie chart based on the aggregated stream weights
+  aggregatedStreamWeights = aggregateStreamWeights(filteredData);
+  streams = Object.keys(aggregatedStreamWeights);
+  weights = Object.values(aggregatedStreamWeights);
+
+  generatePieChart(streams, weights);
+
+  weights = buildings = streams = streamMatchesCount = counts = null;
+
+  // Generate the pie chart based on the stream matches
+  streamMatchesCount = countStreamMatches(filteredData);
+  streams = Object.keys(streamMatchesCount);
+  counts = Object.values(streamMatchesCount);
+
+  generatePieChart_2(streams, counts);
+
+  weights = buildings = streams = streamMatchesCount = counts = null;
 }
 
 async function reset(dataArray) {
