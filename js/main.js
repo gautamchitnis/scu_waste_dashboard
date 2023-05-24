@@ -58,14 +58,18 @@ async function updateMap(buildingNumber) {
   let selectedBuilding = getBuildingName(buildingNumber);
 
   let dataArray = await getData();
+  const listItems = document.querySelectorAll('.date-list li');
+  listItems.forEach(item => item.classList.remove('selected'));
   updateDashboard(dataArray, null, selectedBuilding);
 }
 
 function getBuildingName(buildingNumber) {
   let selectedBuilding = null;
+  let buildingInfo = null;
   switch (buildingNumber) {
     case 1:
-      selectedBuilding = "Learning Commons"
+      selectedBuilding = "Learning Commons";
+      buildingInfo = "";
       break;
     case 2:
       selectedBuilding = "Benson Center"
@@ -278,7 +282,6 @@ function populateDateList(dates) {
       // Call a function to update the dashboard based on the selected date
       updateDashboard(dataArray, selectedDate, selectedBuilding);
     });
-
     dateList.appendChild(listItem);
   });
 
@@ -288,6 +291,10 @@ function populateDateList(dates) {
 
 function generateBarGraph(buildings, weights) {
   const canvas = document.getElementById('barChart');
+  const oldChart = Chart.getChart(canvas);
+  if (typeof oldChart !== 'undefined') {
+      oldChart.destroy();
+  }
 
   // Create the chart using Chart.js
   new Chart(canvas, {
@@ -296,9 +303,9 @@ function generateBarGraph(buildings, weights) {
       labels: buildings,
       datasets: [
         {
-          label: 'Weight of Trash Disposed',
+          label: 'Weight',
           data: weights,
-          backgroundColor: 'rgba(75, 192, 192, 0.8)', // Adjust the color as needed
+          backgroundColor: 'rgba(213, 120, 0, 1)', // Adjust the color as needed
           borderWidth: 1,
         },
       ],
@@ -331,6 +338,8 @@ function updateDashboard(cleanedData, selectedDate, selectedBuilding) {
   let buildings = null;
   let weights = null;
   let streams = null;
+  let streamMatchesCount = null;
+  let counts = null;
 
   let filteredData = cleanedData;
 
@@ -351,7 +360,7 @@ function updateDashboard(cleanedData, selectedDate, selectedBuilding) {
 
   generateBarGraph(buildings, weights);
 
-  weights = buildings = streams = null;
+  weights = buildings = streams = streamMatchesCount = counts = null;
 
   // Generate the bar graph based on the aggregated stream weights
   aggregatedStreamWeights = aggregateStreamWeights(filteredData);
@@ -360,8 +369,15 @@ function updateDashboard(cleanedData, selectedDate, selectedBuilding) {
 
   generatePieChart(streams, weights);
 
-  weights = buildings = streams = null;
+  weights = buildings = streams = streamMatchesCount = counts = null;
 
+  // Generate the bar graph based on the aggregated stream weights
+  streamMatchesCount = countStreamMatches(filteredData);
+  streams = Object.keys(streamMatchesCount);
+  counts = Object.values(streamMatchesCount);
+
+  generatePieChart_2(streams, counts);
+  weights = buildings = streams = streamMatchesCount = counts = null;
 }
 
 function aggregateBuildingWeights(data) {
@@ -385,7 +401,7 @@ function aggregateStreamWeights(data) {
   const aggregatedWeights = {};
 
   data.forEach(row => {
-    const stream = row[2];
+    const stream = row[4];
     const weight = row[7];
 
     if (!aggregatedWeights[stream]) {
@@ -398,24 +414,83 @@ function aggregateStreamWeights(data) {
   return aggregatedWeights;
 }
 
+function countStreamMatches(dataArray) {
+  let correctCount = 0;
+  let incorrectCount = 0;
+
+  dataArray.forEach(row => {
+    const acceptableStream = row[3];
+    const receivedStream = row[4];
+
+    if (acceptableStream === receivedStream) {
+      correctCount++;
+    } else {
+      incorrectCount++;
+    }
+  });
+
+  return { Correct: correctCount, Incorrect: incorrectCount };
+}
+
 function generatePieChart(streams, weights) {
   const canvas = document.getElementById('pieChart');
-  const colors = streams.map(() => generateRandomColor());
+  const colors = streams.map((stream) => {
+    if  (stream === 'Recycling') {
+      return 'rgb(70,122,224)';
+    } else if (stream === 'Compost') {
+      return 'rgba(62, 142, 65, 1)';
+    } else {
+      return 'rgba(84, 101, 117, 1)';
+    }
+    // stream === 'Recycling' ? 'rgba(75, 192, 192, 0.8)' : 'rgba(255, 99, 132, 0.8)'
+  });
+  const oldChart = Chart.getChart(canvas);
+  if (typeof oldChart !== 'undefined') {
+      oldChart.destroy();
+  }
 
   new Chart(canvas, {
     type: 'doughnut',
+    options: {
+      responsive: true,
+      maintainAspectRatio: true,
+      hoverOffset: 30,
+    },
     data: {
       labels: streams,
       datasets: [{
-        label: 'Total Weight of Trash by Stream',
+        label: 'Total Weight',
         data: weights,
         backgroundColor: colors,
         borderWidth: 1,
       }],
     },
+  });
+}
+
+function generatePieChart_2(streams, counts) {
+  const canvas = document.getElementById('pieChart2');
+  // const colors = streams.map(() => generateRandomColor());
+  const colors = streams.map((stream) => stream === 'Correct' ? 'rgb(51,192,57)' : 'rgba(179, 7, 56, 1)');
+  const oldChart = Chart.getChart(canvas);
+  if (typeof oldChart !== 'undefined') {
+      oldChart.destroy();
+  }
+
+  new Chart(canvas, {
+    type: 'doughnut',
     options: {
       responsive: true,
       maintainAspectRatio: true,
+      hoverOffset: 30,
+    },
+    data: {
+      labels: streams,
+      datasets: [{
+        data: counts,
+        backgroundColor: colors,
+        borderWidth: 1,
+      }],
     },
   });
 }
@@ -428,8 +503,13 @@ function generateRandomColor() {
 }
 
 async function reset(dataArray) {
+  const listItems = document.querySelectorAll('.date-list li');
+  listItems.forEach(item => item.classList.remove('selected'));
   if(!dataArray) {
     dataArray = await getData();
   }
+  // Set the image source
+  const mapImage = document.getElementById('map');
+  mapImage.src = `img/scu_map.jpeg`;
   updateDashboard(dataArray);
 }

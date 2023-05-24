@@ -271,6 +271,7 @@ textarea {
   display: flex;
   justify-content: center;
   align-items: center;
+  background-color: #033b4c;
 }
 
 .map-container {
@@ -285,3 +286,59 @@ textarea {
   padding: 2vh 0 2vh 0;
 }
 
+#date_pane, #info_pane, .container-fluid {
+  background-color: #e9e8d5;
+}
+
+#header {
+  background-color: #b30738;
+}
+
+button {
+  display: inline-block;
+  padding: 10px 20px;
+  background-color: #b30738;
+  color: white;
+  font-size: 16px;
+  border: none;
+  cursor: pointer;
+  transition: background-color 0.3s ease;
+  width: 100%;
+}
+
+button:hover {
+  background-color: #45a049;
+}
+
+button:active {
+  background-color: #3e8e41;
+}
+
+.date-list {
+  list-style-type: none;
+  cursor: pointer;
+  color: #9e1b32;
+  padding: 0;
+  margin: 0;
+}
+
+#bp {
+  background-color: #dfdbd3;
+}
+
+#bp3 {
+  height: 40vh;
+  margin-bottom: 6vh;
+}
+
+#bp2 {
+  height: 40vh;
+}
+
+body {
+  font-family: "Helvetica Neue", sans-serif;
+}
+
+.selected {
+  background-color: #7f9c90;
+}
